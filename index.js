@@ -11,9 +11,8 @@ app.use(express());
 
 // BASIC SERVER CONFIGURATION
 app.get("/", (req, res) => {
-  res.send(
-    "hello world! At last I have been able to submit the Assignment 10 and 11 is running here. I will submit it within a week and make as many requirement full filled."
-  );
+  console.log("hello world");
+  res.send({ message: "Don't worry it fine to get error" });
 });
 
 // DATABASE CONFIGURATION
