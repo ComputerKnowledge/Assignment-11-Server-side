@@ -29,6 +29,7 @@ const client = new MongoClient(uri, {
 async function run() {
   try {
     const database1 = client.db("Assignment-11").collection("assignment");
+    const database2 = client.db("Assignment-11").collection("submission");
     // API to get all assignments
     app.get("/assignments", async (req, res) => {
       const result = await database1.find().toArray();
@@ -47,6 +48,26 @@ async function run() {
         _id: new ObjectId(id),
       };
       const result = await database1.findOne(query);
+      res.send(result);
+    });
+    // API to post assignment submission
+    app.post("/assignmentSubmit", async (req, res) => {
+      const data = req.body;
+      const result = await database2.insertOne(data);
+      res.send(result);
+    });
+    // APT   to get all submission
+    app.get("/assignmentSubmit", async (req, res) => {
+      const result = await database2.find().toArray();
+      res.send(result);
+    });
+    // API  to get data based on user's email
+    app.get("/assignmentSubmit/:email", async (req, res) => {
+      const { email } = req.params;
+      const query = {
+        takingUser: email,
+      };
+      const result = await database2.find(query).toArray();
       res.send(result);
     });
   } finally {
