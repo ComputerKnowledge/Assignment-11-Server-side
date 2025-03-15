@@ -50,6 +50,40 @@ async function run() {
       const result = await database1.findOne(query);
       res.send(result);
     });
+    //  API  to delete a single assignment
+    app.delete("/assignments/:id", async (req, res) => {
+      const { id } = req.params;
+      const query = {
+        _id: new ObjectId(id),
+      };
+      const result = await database1.deleteOne(query);
+      res.send(result);
+    });
+    // API to update a single assignment
+    app.put("/assignments/:id", async (req, res) => {
+      const { id } = req.params;
+      const data = req.body;
+      const filter = {
+        _id: new ObjectId(id),
+      };
+      const option = {
+        upsert: true,
+      };
+      const updatedData = {
+        $set: {
+          assignmentTitle: data.assignmentTitle,
+          assignmentDescription: data.assignmentDescription,
+          totalMarks: data.totalMarks,
+          thumbnail: data.thumbnail,
+          difficultyLevel: data.difficultyLevel,
+          dueDate: data.dueDate,
+          createdBy: data.createdBy,
+        },
+      };
+      // console.log("hello world");
+      const result = await database1.updateOne(filter, updatedData, option);
+      res.send(result);
+    });
     // API to post assignment submission
     app.post("/assignmentSubmit", async (req, res) => {
       const data = req.body;
