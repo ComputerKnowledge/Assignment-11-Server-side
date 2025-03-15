@@ -92,7 +92,7 @@ async function run() {
     });
     // APT   to get all submission
     app.get("/assignmentSubmit", async (req, res) => {
-      const result = await database2.find().toArray();
+      const result = await database2.find({ status: "pending" }).toArray();
       res.send(result);
     });
     // API  to get data based on user's email
@@ -102,6 +102,27 @@ async function run() {
         takingUser: email,
       };
       const result = await database2.find(query).toArray();
+      res.send(result);
+    });
+    // API to update and assignment submission
+    app.put("/assignmentSubmit/:id", async (req, res) => {
+      const { id } = req.params;
+      const data = req.body;
+      const filter = {
+        _id: new ObjectId(id),
+      };
+      const option = {
+        upsert: true,
+      };
+      // console.log("hello world");
+      const updatedData = {
+        $set: {
+          feedback: data.feedback,
+          mark: data.mark,
+          status: data.status,
+        },
+      };
+      const result = await database2.updateOne(filter, updatedData, option);
       res.send(result);
     });
   } finally {
