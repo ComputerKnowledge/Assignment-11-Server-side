@@ -17,6 +17,20 @@ app.use(
 app.use(express.json());
 app.use(cookieParser());
 
+const verifyToken = (req, res, next) => {
+  const token = req?.cookies?.token;
+  if (!token) {
+    return res.status(401).send({ message: "unAuthorized" });
+  }
+  jwt.verify(token, process.env.ACCESS_TOKEN, (err, decoded) => {
+    if (err) {
+      return res.status(401).send({ message: "unAuthorized" });
+    }
+    req.user = decoded;
+    next();
+  });
+};
+
 // BASIC SERVER CONFIGURATION
 // app.get("/", (req, res) => {
 //   console.log("hello world");
@@ -38,6 +52,21 @@ async function run() {
   try {
     const database1 = client.db("Assignment-11").collection("assignment");
     const database2 = client.db("Assignment-11").collection("submission");
+
+    // jwt authentication api
+    app.post("/jwt", (req, res) => {
+      const user = req.body;
+      const token = jwt.sign(user, process.env.ACCESS_TOKEN, {
+        expiresIn: "5h",
+      });
+      res
+        .cookie("token", token, {
+          httpOnly: true,
+          secure: false,
+        })
+        .send({ success: true });
+    });
+
     // API to get all assignments
     app.get("/assignments", async (req, res) => {
       const result = await database1.find().toArray();
@@ -104,8 +133,11 @@ async function run() {
       res.send(result);
     });
     // API  to get data based on user's email
-    app.get("/assignmentSubmit/:email", async (req, res) => {
+    app.get("/assignmentSubmit/:email", verifyToken, async (req, res) => {
       const { email } = req.params;
+      if (req.user.email !== email) {
+        return res.status(403).send({ message: "forbidden" });
+      }
       const query = {
         takingUser: email,
       };
