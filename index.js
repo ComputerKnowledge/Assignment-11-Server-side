@@ -10,7 +10,11 @@ const app = express();
 
 app.use(
   cors({
-    origin: ["http://localhost:5173"],
+    origin: [
+      "http://localhost:5173",
+      "https://assignment-11-31fe7.web.app",
+      "https://assignment-11-31fe7.firebaseapp.com",
+    ],
     credentials: true,
   })
 );
@@ -30,6 +34,10 @@ const verifyToken = (req, res, next) => {
     next();
   });
 };
+
+app.get("/", (req, res) => {
+  res.send("Assignment 11");
+});
 
 // BASIC SERVER CONFIGURATION
 // app.get("/", (req, res) => {
@@ -63,7 +71,8 @@ async function run() {
       res
         .cookie("token", token, {
           httpOnly: true,
-          secure: false,
+          secure: process.env.NODE_ENV === "production",
+          sameSite: process.env.NODE_ENV === "production" ? "none" : "strict",
         })
         .send({ success: true });
     });
@@ -73,7 +82,8 @@ async function run() {
       res
         .clearCookie("token", {
           httpOnly: true,
-          secure: false,
+          secure: process.env.NODE_ENV === "production",
+          sameSite: process.env.NODE_ENV === "production" ? "none" : "strict",
         })
         .send({ success: true });
     });
@@ -90,7 +100,7 @@ async function run() {
       res.send(result);
     });
     // API to get a single assignment
-    app.get("/assignments/:id", async (req, res) => {
+    app.get("/assignments/:id", verifyToken, async (req, res) => {
       const { id } = req.params;
       const query = {
         _id: new ObjectId(id),
@@ -139,13 +149,14 @@ async function run() {
       res.send(result);
     });
     // APT   to get all submission
-    app.get("/assignmentSubmit", async (req, res) => {
+    app.get("/assignmentSubmit", verifyToken, async (req, res) => {
       const result = await database2.find({ status: "pending" }).toArray();
       res.send(result);
     });
     // API  to get data based on user's email
     app.get("/assignmentSubmit/:email", verifyToken, async (req, res) => {
       const { email } = req.params;
+      // console.log(req.cookies?.token);
       if (req.user.email !== email) {
         return res.status(403).send({ message: "forbidden" });
       }
