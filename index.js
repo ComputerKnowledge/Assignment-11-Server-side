@@ -142,6 +142,11 @@ async function run() {
       const result = await database1.updateOne(filter, updatedData, option);
       res.send(result);
     });
+
+    app.get("/assignmentSubmit1", async (req, res) => {
+      const result = await database2.find().toArray();
+      res.send(result);
+    });
     // API to post assignment submission
     app.post("/assignmentSubmit", async (req, res) => {
       const data = req.body;
